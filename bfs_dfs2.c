@@ -7,11 +7,21 @@ struct node
 	node *prev;
 	node *next;
 };
+typedef struct queue queue;
+struct queue
+{
+	int size;
+	node * head; //input
+	node * tail; //delete
+};
 int edge[1001][1001] = { 0 };
 int N,cnt=0;
 node *stack = NULL;
+queue * Q = NULL;
 void dfs(int *vertex,int *visited);
 void bfs(int *vertex, int *visited);
+void enqueue(int vertax);
+int  dequeue();
 int main()
 {
 	int M, V,ver1,ver2,i;
@@ -40,6 +50,8 @@ int main()
 
 	free(vertex);
 	free(visited);
+	free(Q);
+	free(stack);
 	return 0;
 }
 void dfs(int *vertex, int *visited)
@@ -86,22 +98,95 @@ void dfs(int *vertex, int *visited)
 }
 void bfs(int *vertex, int *visited)
 {
-	int i,size=0;
-	node *temp,*queue=NULL;
-	queue = (node*)malloc(sizeof(node));
-	if (*(visited + (*vertex) - 1) != 2)
+	int i;
+	int val = *vertex;
+	node *temp=NULL;
+	if (*(visited + val - 1) != 2)
 	{
-		*(visited + (*vertex) - 1) = 2;
-		size++;
+		*(visited + val - 1) = 2;
 		cnt++;
-		printf("%d ", *vertex);
-		queue->data = *vertex;
-		queue->next = NULL;
-		while (size != 0)
+		printf("%d ", val);
+		enqueue(val);
+		while (Q->size >= 1)
 		{
-			if (*(visited + (*vertex) - 1) != 2)
+			if (cnt == N)
+				break;
+			val = dequeue();
+			for (i = 1; i <= N; i++)
 			{
-			}
+				if (edge[val][i] == 1 && *(visited + i - 1) != 2)
+				{
+					enqueue(i);
+					cnt++;
+					*(visited + i - 1) = 2;
+					printf("%d ", i);
+				}
+				else
+					if (cnt == N)
+						break;
+				
+			}	
+			
+		}
+		//if some elements are still in queue, delete all
+		while (Q->size >= 1)
+		{
+			dequeue();
 		}
 	}
+}
+void enqueue(int vertax)
+{
+	node *temp = (node *)malloc(sizeof(node));
+	temp->data = vertax;
+	temp->next = temp->prev = NULL;
+	if (Q == NULL)
+	{
+		Q = (queue*)malloc(sizeof(queue));
+		Q->size = 0;
+		Q->head = Q->tail = temp;
+		Q->size++;
+	}
+	else if (Q != NULL&&Q->size == 0)
+	{
+		Q->size++;
+		Q->head = Q->tail = temp;
+	}
+	else
+	{
+		Q->size++;
+		temp->next = Q->head;
+		Q->head->prev = temp;
+		Q->head = temp;
+	}
+}
+int dequeue()
+{
+	int v;
+	node *temp;
+	if (Q == NULL)
+	{
+		return -1;
+	}
+	if (Q->tail == NULL)
+	{
+		return -1;
+	}
+
+	Q->size--;
+	v = Q->tail->data;
+	temp = Q->tail->prev;
+	free(Q->tail);
+	if (temp != NULL)
+	{
+		temp->next = NULL;
+		Q->tail = temp;
+	}
+	else
+	{
+		Q->tail = NULL;
+		Q->head = NULL;
+		Q->size = 0;
+	}
+	return v;
 }
